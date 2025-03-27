@@ -44,7 +44,7 @@ def SA_t(t):
     s = s0 * np.exp((rA - sA*sA/2 )*t + sA * brownian(t,10*t) )
     return s
 
-def P0TW(T,N,K):
+def P0MC(T,N,K):
 
     S = []
     for k in range(1,N):
@@ -54,9 +54,12 @@ def P0TW(T,N,K):
     q2 =  1/N * eps* np.sum(S)
     return q1*q2
 
+# def P0TW(T,N,d,K):
+#     m = np.log(s0) + (rA -)
+
 T = 10
-N = 20
+N = 5
 K = 2
 
-for k in range(10):
-    print(P0TW(T,N,K))
+# for k in range(10):
+#     print(P0TW(T,N,K))
