@@ -148,9 +148,28 @@ def Pdt_MC(r,S0,K,sig,N,T,n):
 ####################################
 
 
-def Pdt_MC_ctrl(r,S0,K,sig,N,T,n):
-    1+1
-    return 0,0,0,0,0
+def Pdt_MC_ctrl(r,S0,K,sig,N_MC,T,n_traj):
+    
+    LR = (r-sig**2/2)*T/n_traj + sig*np.sqrt(T/n_traj) * ss.norm(0,1).rvs((N_MC,n_traj))  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
+    LRD = np.concatenate((np.ones((N_MC,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
+    
+    Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
+    Spath = np.exp(Log_path)                                            #on passe du logarithme du cours aux cours de l'option
+    
+    S_bar = np.mean(Spath[:,:-1],axis=1)                                #on prends la moyennes du cours
+    payoff = np.exp(-r*T)*np.maximum(S_bar-K,0)                         #on calcule le gain de l'option asiatique
+    
+    price = np.mean(payoff)                                             #on prends la moyenne des N gains
+
+    #calcul de l'erreur et de l'IC à 95%
+
+    STD = np.std(payoff)
+    error = 1.96 * STD/np.sqrt(N_MC)
+    CI_up = price + error
+    CI_Down = price -error
+    
+    
+    return price,STD,error,CI_up,CI_Down
 
 #####################################
 # Q8 : comparaison des estimations
