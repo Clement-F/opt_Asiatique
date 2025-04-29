@@ -63,13 +63,96 @@ PD = np.array([PD_TW(Ti, K, s0, r, sig, max(1,int(N*Ti/T))) for Ti in t])  # max
 X = sig*np.sqrt(t)/2
 
 # Tracé
-plt.plot(t, P0, label='Continu')
-plt.plot(t, PD, label='Discret')
-plt.plot(t, X, label='Estimation rapide')
-plt.xlabel('Temps restant T')
-plt.ylabel('Prix')
-plt.legend()
-plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman')
-plt.grid()
-plt.show()
+# plt.plot(t, P0, label='Continu')
+# plt.plot(t, PD, label='Discret')
+# plt.plot(t, X, label='Estimation rapide')
+# plt.xlabel('Temps restant T')
+# plt.ylabel('Prix')
+# plt.legend()
+# plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman')
+# plt.grid()
+# plt.show()
 
+
+#####################################
+# Q5 : trajectoire brownienne et Monte-Carlo
+####################################
+
+
+def brownian(T,N):
+    Xi = np.random.uniform(size = N)
+    Ni = ss.norm(0,T/N).ppf(Xi)
+    WT = sum(Ni)
+    return WT
+
+def Brown_traj(T,N,s=1):
+    W=[]
+    Ni = ss.norm(0,1).rvs(N)    #génère N variable gaussienne centrée réduite
+    Ni *= s*np.sqrt(T/N)        #on transforme les N gaussiennes centrée pour qu'elles aient la variance souhaité
+    W.append(0)                 
+    W = np.cumsum(Ni)           #on crée le brownien de variance s en passant par la fonction cumsum
+    return W
+
+T = 5           # temps de simulation
+detail =100     # détail de la trajectoire
+N= detail*T     # nombre de variable qui seront simulées
+
+W = Brown_traj(T,N)
+t = np.linspace(0,T,N+1)
+
+
+# plt.plot(t,W)
+# plt.show()
+
+def Asian_options(r,S0,K,sig,N,T,n):
+    
+    LR = (r-sig**2/2)*T/n + sig*np.sqrt(T/n) * ss.norm(0,1).rvs((N,n))  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
+    LRD = np.concatenate((np.ones((N,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
+    
+    Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
+    Spath = np.exp(Log_path)                                            #on passe du logarithme du cours aux cours de l'option
+    
+    S_bar = np.mean(Spath[:,:-1],axis=1)                                #on prends la moyennes du cours
+    payoff = np.exp(-r*T)*np.maximum(S_bar-K,0)                         #on calcule le gain de l'option asiatique
+    
+    price = np.mean(payoff)                                             #on prends la moyenne des N gains
+
+    #calcul de l'erreur et de l'IC à 95%
+
+    STD = np.std(payoff)
+    error = 1.96 * STD/np.sqrt(N)
+    CI_up = price + error
+    CI_Down = price -error
+    
+    
+    return price,STD,error,CI_up,CI_Down
+
+r=0.04
+K=so=100
+s=0.2
+T=1
+N=10**4
+n=10
+
+res = Asian_options(r, so, K, s, N, T,n)
+print("le prix estimé par MC est : ", res[0])
+print("la certitude est de 95%")
+print("l'intervalle de confiance à 95% est : [",res[4],",",res[3],"]")
+print("avec une erreur de ", res[2])
+
+
+
+
+#####################################
+# Q7 : Monte-Carlo par variable de controle
+####################################
+
+
+#####################################
+# Q8 : comparaison des estimations
+####################################
+
+
+#####################################
+# Q9 : 
+####################################
