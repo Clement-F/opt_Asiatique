@@ -47,20 +47,20 @@ def PD_TW(T, K, s0, r, sig, N):
     return P
 
 
-s0 = 1
-T = 6
-K = s0
-r = 0.01
-sig = 0.3
-N = 252*T  # nombre de pas pour T=6
+# s0 = 1
+# T = 6
+# K = s0
+# r = 0.01
+# sig = 0.3
+# N = 252*T  # nombre de pas pour T=6
 
-# Génération de l'axe du temps
-t = np.linspace(T, 0.01, 2*T, endpoint=True)  # j'évite t=0 car division par zéro sinon
+# # Génération de l'axe du temps
+# t = np.linspace(T, 0.01, 2*T, endpoint=True)  # j'évite t=0 car division par zéro sinon
 
-# Calcul point par point
-P0 = np.array([P0_TW(Ti, K, s0, r, sig) for Ti in t])
-PD = np.array([PD_TW(Ti, K, s0, r, sig, max(1,int(N*Ti/T))) for Ti in t])  # max(1,...) pour éviter N=0
-X = sig*np.sqrt(t)/2
+# # Calcul point par point
+# P0 = np.array([P0_TW(Ti, K, s0, r, sig) for Ti in t])
+# PD = np.array([PD_TW(Ti, K, s0, r, sig, max(1,int(N*Ti/T))) for Ti in t])  # max(1,...) pour éviter N=0
+# X = sig*np.sqrt(t)/2
 
 # Tracé
 # plt.plot(t, P0, label='Continu')
@@ -93,12 +93,12 @@ def Brown_traj(T,N,s=1):
     W = np.cumsum(Ni)           #on crée le brownien de variance s en passant par la fonction cumsum
     return W
 
-T = 5           # temps de simulation
-detail =100     # détail de la trajectoire
-N= detail*T     # nombre de variable qui seront simulées
+# T = 5           # temps de simulation
+# detail =100     # détail de la trajectoire
+# N= detail*T     # nombre de variable qui seront simulées
 
-W = Brown_traj(T,N)
-t = np.linspace(0,T,N+1)
+# W = Brown_traj(T,N)
+# t = np.linspace(0,T,N+1)
 
 
 # plt.plot(t,W)
@@ -127,18 +127,18 @@ def Asian_options(r,S0,K,sig,N,T,n):
     
     return price,STD,error,CI_up,CI_Down
 
-r=0.04
-K=so=100
-s=0.2
-T=1
-N=10**4
-n=10
+# r=0.04
+# K=so=100
+# s=0.2
+# T=1
+# N=10**4
+# n=10
 
-res = Asian_options(r, so, K, s, N, T,n)
-print("le prix estimé par MC est : ", res[0])
-print("la certitude est de 95%")
-print("l'intervalle de confiance à 95% est : [",res[4],",",res[3],"]")
-print("avec une erreur de ", res[2])
+# res = Asian_options(r, so, K, s, N, T,n)
+# print("le prix estimé par MC est : ", res[0])
+# print("la certitude est de 95%")
+# print("l'intervalle de confiance à 95% est : [",res[4],",",res[3],"]")
+# print("avec une erreur de ", res[2])
 
 
 
@@ -146,6 +146,8 @@ print("avec une erreur de ", res[2])
 #####################################
 # Q7 : Monte-Carlo par variable de controle
 ####################################
+
+
 
 
 #####################################
@@ -156,3 +158,34 @@ print("avec une erreur de ", res[2])
 #####################################
 # Q9 : 
 ####################################
+
+
+#####################################
+# Q11 : comparaison des deux estimations de TW pour différents strike à différentes échelles de temps
+####################################
+
+s0 = 1
+T = 6
+r = 0.01
+sig = 0.3
+n=10         #nombre d'échantillons du strike 
+
+detail = [252,52,12]
+K = np.linspace(2,0,n,endpoint=False)
+P = np.zeros((4,n))
+
+for k in range(n):
+    P[0,k] = ( P0_TW(T, K[k], s0, r, sig))
+    print("pour dt = 1, le prix estimé par TW est :",P[0,k])
+
+    for d in range(3) : 
+        N = detail[d]*T
+        P[d+1,k] = PD_TW(T, K[k], s0, r, sig, N)  
+        t = np.linspace(T, 0, detail[d]*T, endpoint=False)
+        print("pour dt = 1/",detail[d]," le prix estimé par TW est :",P[d+1,k])
+
+for k in range(4):
+    plt.plot(K,P[k])
+
+plt.grid()
+plt.show()
