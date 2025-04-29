@@ -31,35 +31,37 @@ N= 1000*T
 s0 = 100
 eps = 1
 
-def SA_t(t,r,sig):
+def SA_t(t,r,sig,n):
     M1 = (np.exp(r*T)-1)/(r*T)
-    M2 = (2*np.exp((2*r+sig*sig)*T))/((r+sig*sig)*(2*r+sig*sig)*T*T) + 2/(r*T*T) * (1/(2*r + sig*sig) - np.exp(r*T)/(r+sig*sig))
+    M2 = (2*np.exp((2*r+sig**2)*T))/((r+sig**2)*(2*r+sig**2)*T*T) + 2/(r*T*T) * (1/(2*r + sig**2) - np.exp(r*T)/(r+sig**2))
     rA = np.log(M1)/T
     sigA = np.sqrt(np.log(M2)/T - 2*rA)
 
-    s = s0 * np.exp((rA - sigA*sigA/2 )*t + sigA * brownian(t,10*t) )
+    s = s0 * np.exp((rA - sigA**2/2 )*t + sigA * brownian(t,n*t) )
+    print('brown=',s)
     return s
 
-def P0MC(T,N,K,r,sig):
+def P0MC(T,N,K,r,sig,nMC):
 
     M1 = (np.exp(r*T)-1)/(r*T)
-    M2 = (2*np.exp((2*r+sig*sig)*T))/((r+sig*sig)*(2*r+sig*sig)*T*T) + 2/(r*T*T) * (1/(2*r + sig*sig) - np.exp(r*T)/(r+sig*sig))
+    M2 = (2*np.exp((2*r+sig**2)*T))/((r+sig**2)*(2*r+sig**2)*T*T) + 2/(r*T*T) * (1/(2*r + sig**2) - np.exp(r*T)/(r+sig**2))
     rA = np.log(M1)/T
     sigA = np.sqrt(np.log(M2)/T - 2*rA)
 
     S = []
-    for k in range(1,N):
-        S.append(max(0, SA_t(T,r,sig)-K))
-
+    for k in range(1,nMC):
+        S.append(np.maximum(0, SA_t(T,rA,sigA,N)-K))
+    print(S)
     q1 = np.exp(-rA*T)
-    q2 =  1/N * eps* np.sum(S)
+    q2 =  1/nMC * eps* np.sum(S)
+    print(q1,q2)
     return q1*q2
 
 
 
 def P0TW(T,K,s0,r,sig):
     M1 = (np.exp(r*T)-1)/(r*T)
-    M2 = (2*np.exp((2*r+sig*sig)*T))/((r+sig*sig)*(2*r+sig*sig)*T*T) + 2/(r*T*T) * (1/(2*r + sig*sig) - np.exp(r*T)/(r+sig*sig))
+    M2 = (2*np.exp((2*r+sig**2)*T))/((r+sig**2)*(2*r+sig**2)*T**2) + 2/(r*T**2) * (1/(2*r + sig**2) - np.exp(r*T)/(r+sig**2))
     rA = np.log(M1)/T
     sigA = np.sqrt(np.log(M2)/T - 2*rA)
     # print(M1,M2)
@@ -75,8 +77,8 @@ def P0TW(T,K,s0,r,sig):
 def P0TWD(T,K,s0,r,sig,N):
     dt = T/N
     M1 = 1/N * (np.exp(r*dt)*(1-np.exp(r*N*dt))/(1-np.exp(r*dt)))
-    M21 = 1/N**2 * (np.exp((2*r+sig*sig)*dt) * (1-np.exp((2*r+sig*sig)*dt*N))/(1-np.exp((2*r+sig*sig)*dt)))
-    M22 = 1/N**2 * (  2*np.exp(r*dt)/(1-np.exp(r*dt))   *   (np.exp((2*r+sig*sig)*dt) * (1-np.exp((2*r+sig*sig)*(N-1)*dt))/(1-np.exp((2*r+sig*sig)*dt)) - (np.exp(((N+1)*r+sig*sig)*dt) * (1-np.exp((r+sig*sig)*(N-1)*dt))/(1-np.exp((r+sig*sig)*dt))))  )
+    M21 = 1/N**2 * (np.exp((2*r+sig**2)*dt) * (1-np.exp((2*r+sig**2)*dt*N))/(1-np.exp((2*r+sig**2)*dt)))
+    M22 = 1/N**2 * (  2*np.exp(r*dt)/(1-np.exp(r*dt))   *   (np.exp((2*r+sig**2)*dt) * (1-np.exp((2*r+sig**2)*(N-1)*dt))/(1-np.exp((2*r+sig**2)*dt)) - (np.exp(((N+1)*r+sig**2)*dt) * (1-np.exp((r+sig**2)*(N-1)*dt))/(1-np.exp((r+sig**2)*dt))))  )
     M2 = M21 + M22
     rA = np.log(M1)/T
     sigA = np.sqrt(np.log(M2)/T - 2*rA)
@@ -86,8 +88,11 @@ def P0TWD(T,K,s0,r,sig,N):
     
     d = 1/(sigA*np.sqrt(T))*( np.log(s0/K) + rA*T)
 
-    P = np.exp(-r*T) * (s0* np.exp(rA*T)*(ss.norm.cdf(d + (sigA*np.sqrt(T))*(sigA**2/2 *T))) - K *(ss.norm.cdf(d - (sigA*np.sqrt(T))*(sigA**2/2 *T) )))
+    P = np.exp(-r*T) * (s0* np.exp(-rA*T)*(ss.norm.cdf(d + (sigA*np.sqrt(T))*(sigA**2/2 *T))) - K *(ss.norm.cdf(d - (sigA*np.sqrt(T))*(sigA**2/2 *T) )))
     return P
+
+
+
 
 s0=1
 T = 6
@@ -95,18 +100,21 @@ K = s0
 r=0.01
 sig = 0.3
 N=252*T
-
-# print(P0TWD(T,K,s0,r,sig,N))
-# print(P0TW(T,K,s0,r,sig))
+nm=100
 
 
-t = np.linspace(T,0,2*T,endpoint=False)
-P1 = P0TWD(t,K,s0,r,sig,N)
-P2 = P0TW(t,K,s0,r,sig)
-X = sig*np.sqrt(t)/2
-print(P1)
-plt.plot(t,P1,label='price 2')
-plt.plot(t,P2,label='price')
-plt.plot(t,X,label='esti')
-plt.legend()
-plt.show()
+M = P0MC(T,N,K,r,sig,nm)
+print(P0TWD(T,K,s0,r,sig,N))
+print(P0TW(T,K,s0,r,sig))
+print(M)
+# t = np.linspace(T,0,2*T,endpoint=False)
+# P1 = P0TWD(t,K,s0,r,sig,N)
+# P2 = P0TW(t,K,s0,r,sig)
+# M = P0MC(T,N,K,r,sig)
+# X = sig*np.sqrt(t)/2
+# plt.plot(t,P1,label='price 2')
+# plt.plot(t,P2,label='price')
+# plt.plot(t,M,label="MC")
+# plt.plot(t,X,label='esti')
+# plt.legend()
+# plt.show()
