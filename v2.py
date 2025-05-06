@@ -156,28 +156,28 @@ print("avec une erreur de ", res[2])
 ####################################
 
 
-# def Pdt_MC_ctrl(r,S0,K,sig,T,Traj):
-#     [N,n_traj] = np.shape(Traj)
-#     LR = (r-sig**2/2)*T/n_traj + sig*np.sqrt(T/n_traj) * Traj  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
-#     LRD = np.concatenate((np.ones((N_MC,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
+def Pdt_MC_ctrl(r,S0,K,sig,T,Traj):
+    [N_MC,n_traj] = np.shape(Traj)
+    LR = (r-sig**2/2)*T/n_traj + sig*np.sqrt(T/n_traj) * Traj  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
+    LRD = np.concatenate((np.ones((N_MC,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
     
-#     Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
-#     Spath = np.exp(Log_path)                                            #on passe du logarithme du cours aux cours de l'option
+    Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
+    Spath = np.exp(Log_path)                                            #on passe du logarithme du cours aux cours de l'option
     
-#     S_bar = np.mean(Spath[:,:-1],axis=1)                                #on prends la moyennes du cours
-#     payoff = np.exp(-r*T)*np.maximum(S_bar-K,0)                         #on calcule le gain de l'option asiatique
+    S_bar = np.mean(Spath[:,:-1],axis=1)                                #on prends la moyennes du cours
+    payoff = np.exp(-r*T)*np.maximum(S_bar-K,0)                         #on calcule le gain de l'option asiatique
     
-#     price = np.mean(payoff)                                             #on prends la moyenne des N gains
+    price = np.mean(payoff)                                             #on prends la moyenne des N gains
 
-#     #calcul de l'erreur et de l'IC à 95%
+    #calcul de l'erreur et de l'IC à 95%
 
-#     STD = np.std(payoff)
-#     error = 1.96 * STD/np.sqrt(N_MC)
-#     CI_up = price + error
-#     CI_Down = price -error
+    STD = np.std(payoff)
+    error = 1.96 * STD/np.sqrt(N_MC)
+    CI_up = price + error
+    CI_Down = price -error
     
     
-#     return price,STD,error,CI_up,CI_Down
+    return price,STD,error,CI_up,CI_Down
 
 #####################################
 # Q8 : comparaison des estimations
@@ -200,9 +200,15 @@ print("avec une erreur de ", res[2])
 
 # lorem = 0
 
+
+
 # for i in range(n) :
-#     [P[0,i],lorem,err[0,i],up[0,i],down[0,i]] = Pdt_MC(r, so, K, s, sample[n], T,n_traj)
-#     [P[1,i],lorem,err[1,i],up[1,i],down[1,i]] = Pdt_MC_ctrl(r, so, K, s, sample[n], T,n_traj)
+    # Traj = np.zeros((N,n))
+    # for k in range(N):
+    #     Traj[k,:]=Brown_traj(T,n,s)
+
+#     [P[0,i],lorem,err[0,i],up[0,i],down[0,i]] = Pdt_MC(r, so, K, s, T,Traj)
+#     [P[1,i],lorem,err[1,i],up[1,i],down[1,i]] = Pdt_MC_ctrl(r, so, K, s, T,Traj)
 
 # plt.plot(sample,P[0])
 # plt.plot(sample,P[1])
@@ -220,39 +226,41 @@ print("avec une erreur de ", res[2])
 
 #####################################
 # Q9 : confiance de l'estimateur en fonction de K
+#####################################
 
-Traj_precis = [] # contients des trajectoires pour lequel l'esti de Pdt_MC_ctrl est précis
+# s0 = 1
+# T = 6
+# r = 0.01
+# sig = 0.3
+# n=10         #nombre d'échantillons du strike 
+# N=10**4
 
-# n=10
-# sample = [2**k for k in range(n)]
 
-# P = np.zeros((2,n))
-# err = np.zeros((2,n))
-# up = np.zeros((2,n))
-# down = np.zeros((2,n))
+# dt = 10  
+# Traj_precis = np.zeros((N,dt))   # contients des trajectoires pour lequel l'esti de Pdt_MC_ctrl est précis
+# for i in range(N):
+#     Traj_precis[i,:]=Brown_traj(T,dt,s)
 
-# lorem = 0
+# K = np.linspace(2,0,n,endpoint=False)
+# P = np.zeros(2)
+# err = np.zeros(2)
+# CI_up = np.zeros(2)
+# CI_down = np.zeros(2)
 
-# for Traj in Traj_precis:
-    # for i in range(n) :
-    #     [P[0,i],lorem,err[0,i],up[0,i],down[0,i]] = Pdt_TW(r, so, K, s, sample[n], T,n_traj, Traj)
-    #     [P[1,i],lorem,err[1,i],up[1,i],down[1,i]] = Pdt_MC_ctrl(r, so, K, s, sample[n], T,n_traj, Traj)
+# for k in K:
+#     [P[0],lorem,err[0],CI_up[0],CI_down[0]] = Pdt_MC_ctrl(r,s0,k,sig,T,Traj_precis)
+#     [P[1],lorem,err[1],CI_up[1],CI_down[1]] = PD_TW(T,k,s0,r,sig,dt)
 
-    # plt.plot(sample,P[0])
-    # plt.plot(sample,P[1])
-    # plt.show()
+# plt.plot(K,P[0], 'r')
+# plt.plot(K,P[1], 'b')
+# plt.plot(K,CI_up[0], '-r')
+# plt.plot(K,CI_down[0], '-r')
+# plt.plot(K,CI_up[1], '-b')
+# plt.plot(K,CI_down[1], '-b')
 
-    # plt.plot(sample,err[0])
-    # plt.plot(sample,err[1])
-    # plt.show()
+# plt.show()
 
-    # plt.plot(sample,up[0])
-    # plt.plot(sample,up[1])
-    # plt.plot(sample,down[0])
-    # plt.plot(sample,down[1])
-    # plt.show()
 
-####################################
 
 
 #####################################
