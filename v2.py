@@ -85,11 +85,10 @@ def brownian(T,N):
     WT = sum(Ni)
     return WT
 
-def Brown_traj(T,N,s=1):
+def Brown_traj(T,N,s=1.):
     W=[]
     Ni = ss.norm(0,1).rvs(N)    #génère N variable gaussienne centrée réduite
-    Ni *= s*np.sqrt(T/N)        #on transforme les N gaussiennes centrée pour qu'elles aient la variance souhaité
-    W.append(0)                 
+    Ni *= s*np.sqrt(T/N)        #on transforme les N gaussiennes centrée pour qu'elles aient la variance souhaité             
     W = np.cumsum(Ni)           #on crée le brownien de variance s en passant par la fonction cumsum
     return W
 
@@ -104,9 +103,9 @@ def Brown_traj(T,N,s=1):
 # plt.plot(t,W)
 # plt.show()
 
-def Pdt_MC(r,S0,K,sig,N,T,n):
-    
-    LR = (r-sig**2/2)*T/n + sig*np.sqrt(T/n) * ss.norm(0,1).rvs((N,n))  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
+def Pdt_MC(r,S0,K,sig,T,Traj):
+    [N,n] = np.shape(Traj)
+    LR = (r-sig**2/2)*T/n + sig*np.sqrt(T/n) * Traj  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
     LRD = np.concatenate((np.ones((N,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
     
     Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
@@ -127,18 +126,27 @@ def Pdt_MC(r,S0,K,sig,N,T,n):
     
     return price,STD,error,CI_up,CI_Down
 
-# r=0.04
-# K=so=100
-# s=0.2
-# T=1
-# N=10**4
-# n=10
+r=0.04
+K=so=100
+s=0.2
+T=1
+N=10**4
+n=10
 
-# res = Pdt_MC(r, so, K, s, N, T,n)
-# print("le prix estimé par MC est : ", res[0])
-# print("la certitude est de 95%")
-# print("l'intervalle de confiance à 95% est : [",res[4],",",res[3],"]")
-# print("avec une erreur de ", res[2])
+Trajectoires = np.zeros((N,n))
+for i in range(N):
+    Trajectoires[i,:]=Brown_traj(T,n,s)
+
+plt.plot(Trajectoires[2])
+plt.plot(Trajectoires[5])
+plt.show()
+
+print(np.shape((Trajectoires)))
+res = Pdt_MC(r, so, K, s, T,Trajectoires)
+print("le prix estimé par MC est : ", res[0])
+print("la certitude est de 95%")
+print("l'intervalle de confiance à 95% est : [",res[4],",",res[3],"]")
+print("avec une erreur de ", res[2])
 
 
 
@@ -148,28 +156,28 @@ def Pdt_MC(r,S0,K,sig,N,T,n):
 ####################################
 
 
-def Pdt_MC_ctrl(r,S0,K,sig,N_MC,T,n_traj):
+# def Pdt_MC_ctrl(r,S0,K,sig,T,Traj):
+#     [N,n_traj] = np.shape(Traj)
+#     LR = (r-sig**2/2)*T/n_traj + sig*np.sqrt(T/n_traj) * Traj  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
+#     LRD = np.concatenate((np.ones((N_MC,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
     
-    LR = (r-sig**2/2)*T/n_traj + sig*np.sqrt(T/n_traj) * ss.norm(0,1).rvs((N_MC,n_traj))  #on simule les n morceaux des N trajectoire que prenne les logarithme des cours de l'action
-    LRD = np.concatenate((np.ones((N_MC,1))*np.log(S0),LR),axis=1)         #on ajoute le départ log(S0)
+#     Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
+#     Spath = np.exp(Log_path)                                            #on passe du logarithme du cours aux cours de l'option
     
-    Log_path = np.cumsum(LRD,axis=1)                                    #on colle les n morceaux pour obtenir des trajectoires
-    Spath = np.exp(Log_path)                                            #on passe du logarithme du cours aux cours de l'option
+#     S_bar = np.mean(Spath[:,:-1],axis=1)                                #on prends la moyennes du cours
+#     payoff = np.exp(-r*T)*np.maximum(S_bar-K,0)                         #on calcule le gain de l'option asiatique
     
-    S_bar = np.mean(Spath[:,:-1],axis=1)                                #on prends la moyennes du cours
-    payoff = np.exp(-r*T)*np.maximum(S_bar-K,0)                         #on calcule le gain de l'option asiatique
-    
-    price = np.mean(payoff)                                             #on prends la moyenne des N gains
+#     price = np.mean(payoff)                                             #on prends la moyenne des N gains
 
-    #calcul de l'erreur et de l'IC à 95%
+#     #calcul de l'erreur et de l'IC à 95%
 
-    STD = np.std(payoff)
-    error = 1.96 * STD/np.sqrt(N_MC)
-    CI_up = price + error
-    CI_Down = price -error
+#     STD = np.std(payoff)
+#     error = 1.96 * STD/np.sqrt(N_MC)
+#     CI_up = price + error
+#     CI_Down = price -error
     
     
-    return price,STD,error,CI_up,CI_Down
+#     return price,STD,error,CI_up,CI_Down
 
 #####################################
 # Q8 : comparaison des estimations
@@ -211,7 +219,39 @@ def Pdt_MC_ctrl(r,S0,K,sig,N_MC,T,n_traj):
 # plt.show()
 
 #####################################
-# Q9 : 
+# Q9 : confiance de l'estimateur en fonction de K
+
+Traj_precis = [] # contients des trajectoires pour lequel l'esti de Pdt_MC_ctrl est précis
+
+# n=10
+# sample = [2**k for k in range(n)]
+
+# P = np.zeros((2,n))
+# err = np.zeros((2,n))
+# up = np.zeros((2,n))
+# down = np.zeros((2,n))
+
+# lorem = 0
+
+# for Traj in Traj_precis:
+    # for i in range(n) :
+    #     [P[0,i],lorem,err[0,i],up[0,i],down[0,i]] = Pdt_TW(r, so, K, s, sample[n], T,n_traj, Traj)
+    #     [P[1,i],lorem,err[1,i],up[1,i],down[1,i]] = Pdt_MC_ctrl(r, so, K, s, sample[n], T,n_traj, Traj)
+
+    # plt.plot(sample,P[0])
+    # plt.plot(sample,P[1])
+    # plt.show()
+
+    # plt.plot(sample,err[0])
+    # plt.plot(sample,err[1])
+    # plt.show()
+
+    # plt.plot(sample,up[0])
+    # plt.plot(sample,up[1])
+    # plt.plot(sample,down[0])
+    # plt.plot(sample,down[1])
+    # plt.show()
+
 ####################################
 
 
@@ -219,33 +259,33 @@ def Pdt_MC_ctrl(r,S0,K,sig,N_MC,T,n_traj):
 # Q11 : comparaison des deux estimations de TW pour différents strike à différentes échelles de temps
 ####################################
 
-s0 = 1
-T = 6
-r = 0.01
-sig = 0.3
-n=10         #nombre d'échantillons du strike 
+# s0 = 1
+# T = 6
+# r = 0.01
+# sig = 0.3
+# n=10         #nombre d'échantillons du strike 
 
-detail = [int(1e+6),252,52,12]
-K = np.linspace(2,0,n,endpoint=False)
-P = np.zeros((5,n))
+# detail = [int(1e+6),252,52,12]
+# K = np.linspace(2,0,n,endpoint=False)
+# P = np.zeros((5,n))
 
-for k in range(n):
-    P[0,k] = ( P0_TW(T, K[k], s0, r, sig))
-    print("pour dt = 1, le prix estimé par TW est :",P[0,k])
+# for k in range(n):
+#     P[0,k] = ( P0_TW(T, K[k], s0, r, sig))
+#     print("pour dt = 1, le prix estimé par TW est :",P[0,k])
 
-    for d in range(4) : 
-        N = detail[d]*T
-        P[d+1,k] = PD_TW(T, K[k], s0, r, sig, N)  
-        t = np.linspace(T, 0, detail[d]*T, endpoint=False)
-        print("pour dt = 1/",detail[d]," le prix estimé par TW est :",P[d+1,k])
+#     for d in range(4) : 
+#         N = detail[d]*T
+#         P[d+1,k] = PD_TW(T, K[k], s0, r, sig, N)  
+#         t = np.linspace(T, 0, detail[d]*T, endpoint=False)
+#         print("pour dt = 1/",detail[d]," le prix estimé par TW est :",P[d+1,k])
 
-plt.loglog(K,P[0]-P[1],label=0)
-for k in range(2,5):
-    plt.loglog(K,P[k]-P[1],label=k)
+# plt.loglog(K,P[0]-P[1],label=0)
+# for k in range(2,5):
+#     plt.loglog(K,P[k]-P[1],label=k)
 
-plt.legend()
-plt.grid()
-plt.show()
+# plt.legend()
+# plt.grid()
+# plt.show()
 
 
 ###########################################
@@ -253,5 +293,5 @@ plt.show()
 ###########################################
 
 
-plt.plot(K,P[0])
-plt.show()
+# plt.plot(K,P[0])
+# plt.show()
