@@ -73,3 +73,9 @@ plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman')
 plt.grid()
 plt.show()
 
+
+###########################################
+# Q5 : Simulation d'une trajectoire brownienne et estimation du prix par une méthode Monte Carlo
+###########################################
+
+
