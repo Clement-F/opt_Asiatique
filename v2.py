@@ -219,43 +219,43 @@ print(Pdt_MC_ctrl(r,so,K,sig,T,Trajectoires))
 ####################################
 
 
-# r=0.04
-# K=so=100
-# s=0.2
-# T=1
-# n_traj = 10
-# N_MC = 10**4
-# n=5
-# sample = [2**k for k in range(n)]
+r=0.04
+K=so=100
+s=0.2
+T=1
+n_traj = 10
+N_MC = 10**4
+n=5
+sample = [2**k for k in range(n)]
 
-# P = np.zeros((2,n))
-# err = np.zeros((2,n))
-# up = np.zeros((2,n))
-# down = np.zeros((2,n))
+P = np.zeros((2,n))
+err = np.zeros((2,n))
+up = np.zeros((2,n))
+down = np.zeros((2,n))
 
-# dt = 10
+dt = 10
 
-# for i in range(n) :
-#     Traj = np.zeros((N_MC,dt))
-#     for k in range(N_MC):
-#         Traj[k,:]=Brown_traj(T,dt,s)
+for i in range(n) :
+    Traj = np.zeros((N_MC,dt))
+    for k in range(N_MC):
+        Traj[k,:]=Brown_traj(T,dt,s)
 
-#     [P[0,i],lorem,err[0,i],up[0,i],down[0,i]] = Pdt_MC(r, so, K, s, T,Traj)
-#     [P[1,i],lorem,err[1,i],up[1,i],down[1,i]] = Pdt_MC_ctrl(r, so, K, s, T,Traj)
+    [P[0,i],lorem,err[0,i],up[0,i],down[0,i]] = Pdt_MC(r, so, K, s, T,Traj)
+    [P[1,i],lorem,err[1,i],up[1,i],down[1,i]] = Pdt_MC_ctrl(r, so, K, s, T,Traj)
 
-# plt.plot(sample,P[0], 'r', label = 'price MC')
-# plt.plot(sample,P[1], 'b', label = 'price MC ctrl')
-# plt.show()
+plt.plot(sample,P[0], 'r', label = 'price MC')
+plt.plot(sample,P[1], 'b', label = 'price MC ctrl')
+plt.show()
 
-# plt.plot(sample,err[0], 'r', label = 'err MC')
-# plt.plot(sample,err[1], 'b', label = 'err MC ctrl')
-# plt.show()
+plt.plot(sample,err[0], 'r', label = 'err MC')
+plt.plot(sample,err[1], 'b', label = 'err MC ctrl')
+plt.show()
 
-# plt.plot(sample,up[0],'-r')
-# plt.plot(sample,up[1], '-b')
-# plt.plot(sample,down[0], '-r')
-# plt.plot(sample,down[1], '-b')
-# plt.show()
+plt.plot(sample,up[0],'-r')
+plt.plot(sample,up[1], '-b')
+plt.plot(sample,down[0], '-r')
+plt.plot(sample,down[1], '-b')
+plt.show()
 
 
 ####################################
