@@ -21,13 +21,15 @@ def P0_TW(T, K, s0, r, sig):
     P = np.exp(-r*T) * (s0*np.exp(rA*T)*ss.norm.cdf(d1) - K*ss.norm.cdf(d2))
     return P
 
+# P0 = P0_TW(0.5, 1, 1, 0.01, 0.3)
+# print(f"Approximation de Turnbull&Wakeman du prix de l'option asiatique (cas continu) : {P0:.4f}")
 
 
 #####################################
 # Q4 : Implémentation du prix d'une option asiatique selon Turnbull&Wakeman (cas discret)
 ####################################
 
-def PD_TW(T, K, s0, r, sig, N):
+def PD_TW(T, K, S0, r, sig, N):
 
     dt = T/N
 
@@ -41,45 +43,26 @@ def PD_TW(T, K, s0, r, sig, N):
     rA = np.log(M1) / T
     sigA = np.sqrt(np.log(M2)/T - 2*rA)
 
-    d1 = (np.log(s0/K) + (rA + 0.5*sigA**2)*T) / (sigA * np.sqrt(T))
+    d1 = (np.log(S0/K) + (rA + 0.5*sigA**2)*T) / (sigA * np.sqrt(T))
     d2 = d1 - sigA * np.sqrt(T)
 
-    P = np.exp(-r*T) * (s0*np.exp(rA*T)*ss.norm.cdf(d1) - K*ss.norm.cdf(d2))
+    P = np.exp(-r*T) * (S0*np.exp(rA*T)*ss.norm.cdf(d1) - K*ss.norm.cdf(d2))
     return P
 
-
-# s0 = 1
-# T = 6
-# K = s0
-# r = 0.01
-# sig = 0.3
-# N = 252*T  # nombre de pas pour T=6
-
-# # Génération de l'axe du temps
-# t = np.linspace(T, 0.01, 2*T, endpoint=True)  # j'évite t=0 car division par zéro sinon
-
-# # Calcul point par point
-# P0 = np.array([P0_TW(Ti, K, s0, r, sig) for Ti in t])
-# PD = np.array([PD_TW(Ti, K, s0, r, sig, max(1,int(N*Ti/T))) for Ti in t])  # max(1,...) pour éviter N=0
-# X = sig*np.sqrt(t)/2
-
-# Tracé
-# plt.plot(t, P0, label='Continu')
-# plt.plot(t, PD, label='Discret')
-# plt.plot(t, X, label='Estimation rapide')
-# plt.xlabel('Temps restant T')
-# plt.ylabel('Prix')
-# plt.legend()
-# plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman')
-# plt.grid()
-# plt.show()
+# Test d'application :
+# T = 0.5
+# sigma = 0.3
+# dt = 1 / 252
+# N = int(T / dt)
+# P = PD_TW(T, 1, 1, 0.01, sigma, N)
+# print(f"Approximation de Turnbull&Wakeman du prix de l'option asiatique (cas discret) : {P:.4f}")
 
 
 #####################################
 # Q5 : trajectoire brownienne et Monte-Carlo
 ####################################
 
-def Brown_traj(T, N, sigma=1):
+def Brown_traj(T, N):
     """
     Simule une trajectoire de mouvement brownien de variance sigma^2 sur [0,T] avec N pas.
 
@@ -91,7 +74,7 @@ def Brown_traj(T, N, sigma=1):
     """
     dt = T / N
     G = ss.norm.rvs(size=N)                      # N variables gaussiennes centrées réduites
-    dW = sigma * np.sqrt(dt) * G                 # incréments du brownien
+    dW = np.sqrt(dt) * G                         # incréments du brownien
     W = np.concatenate(([0], np.cumsum(dW)))     # W_0 = 0, puis cumul des incréments
     return W
 
@@ -133,7 +116,7 @@ def PDt_MC(T, K, S0, r, sigma, N, M):
 
     for i in range(M):
         t = np.linspace(0, T, N+1)
-        W = Brown_traj(T, N, sigma)  # Simulation d'une trajectoire brownienne
+        W = Brown_traj(T, N)  # Simulation d'une trajectoire brownienne
         
         # Calcul de la trajectoire de l'actif sous-jacent S(t)
         S = S0 * np.exp((r - 0.5 * sigma**2) * t + sigma * W) 
@@ -169,9 +152,9 @@ N = int(T / dt)
 M = 10000 
 
 P_MC = PDt_MC(T, K, S0, r, sigma, N, M)
-#print(f"Prix de l'option asiatique par Monte Carlo : {P_MC[0]:.4f}")
+# print(f"Prix de l'option asiatique par Monte Carlo : {P_MC[0]:.4f}")
 
-#print(f"Intervalle de confiance à 90% : [{P_MC[1]:.4f}, {P_MC[2]:.4f}]")
+# print(f"Intervalle de confiance à 90% : [{P_MC[1]:.4f}, {P_MC[2]:.4f}]")
 
 
 #####################################
@@ -208,7 +191,7 @@ def PDt_MC_control(T, K, S0, r, sigma, N, M):
     controls = []
 
     for j in range(M):
-        W = Brown_traj(T, N, sigma)
+        W = Brown_traj(T, N)
         S = S0 * np.exp((r - 0.5 * sigma**2) * t + sigma * W)
         
         S_bar = np.mean(S[1:])
@@ -250,16 +233,15 @@ N = int(T / dt)
 M = 10000 
 
 P_VC = PDt_MC_control(T, K, S0, r, sigma, N, M)
-#print(f"Prix estimé par Monte Carlo avec variable de contrôle : {P_VC[0]:.4f}")
+# print(f"Prix estimé par Monte Carlo avec variable de contrôle : {P_VC[0]:.4f}")
 
-#print(f"Intervalle de confiance à 90% : [{P_VC[1]:.4f}, {P_VC[2]:.4f}]")
+# print(f"Intervalle de confiance à 90% : [{P_VC[1]:.4f}, {P_VC[2]:.4f}]")
 
 
 #####################################
 # Q8 : Tracés de P^Δt,MC et de P^Δt,MC,ctrl 
 ####################################
 
-#comment tracer les estimateurs P^Δt,MC et P^Δt,MC,ctrl en fonction du nombre de trajectoires ainsi que leurs intervalles de confiance asymptotiques à 90%. Ajouter également l'approximation de P^Δt,MC,ctrl par la formule de Turnbull & Wakeman (cas discret)
 
 m = np.unique(np.logspace(1, 4, 100, dtype=int))  # de 10 à 10_000, 100 points
 
@@ -324,9 +306,9 @@ for K in K_vals:
 
 # plt.close()  
 # plt.figure(figsize=(10, 4)) 
-# plt.plot(K_vals, Prices_MC_ctrl, label='P^Δt,MC,ctrl')
+# plt.plot(K_vals, Prices_MC_ctrl, label='P^Δt,MC,ctrl', linestyle='-')
 # plt.fill_between(K_vals, CI_down_ctrl, CI_up_ctrl, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
-# plt.plot(K_vals, Prices_TW, label='P^Δt,TW')
+# plt.plot(K_vals, Prices_TW, label='P^Δt,TW', linestyle='--')
 # plt.xlabel('Prix d\'exercice K')
 # plt.ylabel('Prix')
 # plt.title('Prix de l\'option asiatique en fonction de K')
@@ -338,17 +320,21 @@ for K in K_vals:
 Prices_MC_ctrl = np.array(Prices_MC_ctrl)
 Prices_TW = np.array(Prices_TW)
 
-# plt.close() 
+# plt.close()
 # plt.figure(figsize=(10, 4))
 # plt.plot(K_vals, Prices_MC_ctrl - Prices_TW, label="P^Δt,MC,ctrl - P^Δt,TW", color="blue")
 # plt.axhline(0, linestyle='--', color='gray')
 # plt.xlabel("Prix d'exercice K")
 # plt.ylabel("Différence")
 # plt.title("Différence entre les deux estimateurs")
+
+# plt.xlim(0.9, 1.1)  # Zoom sur l'axe des K autour de 1
+
 # plt.grid(True)
 # plt.legend()
 # plt.tight_layout()
 # plt.show()
+
 
 #####################################
 # Q10 : Tracé de P^Δt,MC,ctrl en fonction de sigma
@@ -371,7 +357,7 @@ for sigma in sigma_vals:
 # plt.figure(figsize=(10, 4))
 # plt.plot(sigma_vals, Prices_MC_ctrl, label='P^Δt,MC,ctrl')
 # plt.fill_between(sigma_vals, CI_down_ctrl, CI_up_ctrl, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
-# plt.plot(sigma_vals, Prices_TW, label='P^Δt,TW')
+# plt.plot(sigma_vals, Prices_TW, label='P^Δt,TW', linestyle='--')
 # plt.xlabel('Volatilité σ')
 # plt.ylabel('Prix')
 # plt.title('Prix de l\'option asiatique en fonction de σ')
@@ -414,10 +400,10 @@ for K in K_vals:
 
 # plt.close() 
 # plt.figure(figsize=(10, 4))
-# plt.plot(K_vals, Prices_TW_0, label='Dt = 0 (cas continu)')
-# plt.plot(K_vals, Prices_TW_1_252, label='Dt = 1/252 (un jour)')
-# plt.plot(K_vals, Prices_TW_1_52, label='Dt = 1/52 (une semaine)')
-# plt.plot(K_vals, Prices_TW_1_12, label='Dt = 1/12 (un mois)')
+# plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='--')
+# plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle=':')
+# plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-.')
+# plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)')
 # plt.xlabel('Prix d\'exercice K')
 # plt.ylabel('Prix')
 # plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
@@ -425,15 +411,14 @@ for K in K_vals:
 # plt.grid()
 
 # plt.xlim(0.8, 1.2)
-# plt.ylim(min(Prices_TW_0 + Prices_TW_1_252 + Prices_TW_1_52 + Prices_TW_1_12) * 0.95,
-#          0.25)
+# plt.ylim(0, 0.2)
 
 # plt.tight_layout()
 # plt.show()
 
 
 #####################################
-# Q12 : Tracé de la différence P^Δt,MC,ctrl - P^Δt,TW pour différents dt 
+# Q12 : Tracé de la différence P^Δt,MC,ctrl - P^Δt,TW pour différents Δt
 ####################################
 
 K_vals = np.linspace(0.01, 2, 50)
@@ -442,19 +427,19 @@ Prices_diff_1_52 = []
 Prices_diff_1_12 = []
 
 for K in K_vals:
-    Prices_diff_1_252.append(PDt_MC_control(1, K, S0, r, sigma, 252, M) - PD_TW(1, K, S0, r, sigma, 252))  # dt = 1/252
-    Prices_diff_1_52.append(PDt_MC_control(1, K, S0, r, sigma, 52, M) - PD_TW(1, K, S0, r, sigma, 52))  # dt = 1/52
-    Prices_diff_1_12.append(PDt_MC_control(1, K, S0, r, sigma, 12, M) - PD_TW(1, K, S0, r, sigma, 12))  # dt = 1/12
+    Prices_diff_1_252.append(PDt_MC_control(1, K, S0, r, sigma, 252, M) - PD_TW(1, K, S0, r, sigma, 252))  # Δt = 1/252
+    Prices_diff_1_52.append(PDt_MC_control(1, K, S0, r, sigma, 52, M) - PD_TW(1, K, S0, r, sigma, 52))  # Δt = 1/52
+    Prices_diff_1_12.append(PDt_MC_control(1, K, S0, r, sigma, 12, M) - PD_TW(1, K, S0, r, sigma, 12))  # Δt = 1/12
 
 plt.close() 
 plt.figure(figsize=(10, 4))
-plt.plot(K_vals, Prices_diff_1_252, label='Dt = 1/252 (un jour)')
-plt.plot(K_vals, Prices_diff_1_52, label='Dt = 1/52 (une semaine)')
-plt.plot(K_vals, Prices_diff_1_12, label='Dt = 1/12 (un mois)')
+plt.plot(K_vals, Prices_diff_1_252, label='Δt = 1/252 (un jour)')
+plt.plot(K_vals, Prices_diff_1_52, label='Δt = 1/52 (une semaine)')
+plt.plot(K_vals, Prices_diff_1_12, label='Δt = 1/12 (un mois)')
 plt.xlabel('Prix d\'exercice K')
 plt.ylabel('Différence')
 plt.axhline(0, linestyle='--', color='gray')
-plt.title('Différence entre l\' estimateur Monte Carlo et l\' approximation de Turnbull & Wakeman en fonction de Δt')
+plt.title('Différence entre l\' estimateur Monte Carlo et l\' approximation de Turnbull & Wakeman en fonction de K pour plusieurs Δt')
 plt.legend()
 plt.grid()
 
