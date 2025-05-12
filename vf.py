@@ -1,3 +1,4 @@
+from matplotlib.lines import lineStyles
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as ss
@@ -85,8 +86,8 @@ sigma = 0.3
 dt = 1 / 252
 N = int(T / dt)
 
-t = np.linspace(0,T,N+1)
-W = Brown_traj(T, N)
+# t = np.linspace(0,T,N+1)
+# W = Brown_traj(T, N)
 
 # plt.plot(t, W)
 # plt.xlabel("Temps")
@@ -112,7 +113,7 @@ def PDt_MC(T, K, S0, r, sigma, N, M):
 
     """
     dt = T / N
-    payoffs = []
+    payoffs = np.zeros(M)
 
     for i in range(M):
         t = np.linspace(0, T, N+1)
@@ -125,16 +126,14 @@ def PDt_MC(T, K, S0, r, sigma, N, M):
         S_mean = np.mean(S[1:]) #on prend pas S0 car i commence à 1 
 
         # Payoff de l'option asiatique
-        payoff = max(S_mean - K, 0)
-        payoffs.append(payoff)
+        payoffs[i] = max(S_mean - K, 0)
     
     # Actualisation de la moyenne des payoffs
     P = np.exp(-r * T) * np.mean(payoffs)
 
     # Calcul de l'erreur et de l'intervalle de confiance à 90%
     std = np.std(payoffs)
-    z = norm.ppf(1 - 0.10 / 2) 
-    error = z * std / np.sqrt(M)
+    error = 1.65 * std / np.sqrt(M)
 
     CI_up = P + error
     CI_Down = P -error
@@ -151,7 +150,7 @@ dt = 1 / 252
 N = int(T / dt)  
 M = 10000 
 
-P_MC = PDt_MC(T, K, S0, r, sigma, N, M)
+# P_MC = PDt_MC(T, K, S0, r, sigma, N, M)
 # print(f"Prix de l'option asiatique par Monte Carlo : {P_MC[0]:.4f}")
 
 # print(f"Intervalle de confiance à 90% : [{P_MC[1]:.4f}, {P_MC[2]:.4f}]")
@@ -187,8 +186,8 @@ def PDt_MC_control(T, K, S0, r, sigma, N, M):
     sigma_E = sigma / N * np.sqrt((N + 1) * (2 * N + 1) / 6)
     r_E = (r - 0.5 * sigma**2) * (N + 1) / (2 * N) + 0.5 * sigma_E**2
 
-    payoffs = []
-    controls = []
+    payoffs = np.zeros(M)
+    controls = np.zeros(M)
 
     for j in range(M):
         W = Brown_traj(T, N)
@@ -200,11 +199,8 @@ def PDt_MC_control(T, K, S0, r, sigma, N, M):
         Y = np.exp(-r * T) * max(S_bar - K, 0)
         Z = np.exp(-r * T) * max(G_bar - K, 0)
 
-        payoffs.append(Y)
-        controls.append(Z)
-
-    payoffs = np.array(payoffs)
-    controls = np.array(controls)
+        payoffs[j]=Y
+        controls[j]=Z
     
     Z_mean = np.mean(controls)
     Z_exact = prix_geometrique_asiatique(S0, K, T, r, sigma_E, r_E)
@@ -213,8 +209,7 @@ def PDt_MC_control(T, K, S0, r, sigma, N, M):
 
     # Calcul de l'erreur et de l'intervalle de confiance à 90%
     std = np.std(payoffs - controls)
-    z = norm.ppf(1 - 0.10 / 2) 
-    error = z * std / np.sqrt(M)
+    error = 1.65 * std / np.sqrt(M)
 
     CI_up = P_control + error
     CI_Down = P_control -error
@@ -232,7 +227,7 @@ dt = 1 / 252
 N = int(T / dt)  
 M = 10000 
 
-P_VC = PDt_MC_control(T, K, S0, r, sigma, N, M)
+# P_VC = PDt_MC_control(T, K, S0, r, sigma, N, M)
 # print(f"Prix estimé par Monte Carlo avec variable de contrôle : {P_VC[0]:.4f}")
 
 # print(f"Intervalle de confiance à 90% : [{P_VC[1]:.4f}, {P_VC[2]:.4f}]")
@@ -243,30 +238,30 @@ P_VC = PDt_MC_control(T, K, S0, r, sigma, N, M)
 ####################################
 
 
-m = np.unique(np.logspace(1, 4, 100, dtype=int))  # de 10 à 10_000, 100 points
+m = np.logspace(1, 4, 100, dtype=int)  # de 10 à 10_000, 100 points équitablement réparti en log
 
-P_MC, CI_Down_MC, CI_Up_MC = [], [], []
-P_VC, CI_Down_VC, CI_Up_VC = [], [], []
-P_TW = []
+# P_MC, CI_Down_MC, CI_Up_MC = [], [], []
+# P_VC, CI_Down_VC, CI_Up_VC = [], [], []
+# P_TW = []
 
-for M_i in m:
-    p_mc, ci_down_mc, ci_up_mc, _ = PDt_MC(T, K, S0, r, sigma, N, int(M_i))
-    p_vc, ci_down_vc, ci_up_vc, _ = PDt_MC_control(T, K, S0, r, sigma, N, int(M_i))
-    p_tw = PD_TW(T, K, S0, r, sigma, N)
+# for M_i in m:
+#     p_mc, ci_down_mc, ci_up_mc, _ = PDt_MC(T, K, S0, r, sigma, N, int(M_i))
+#     p_vc, ci_down_vc, ci_up_vc, _ = PDt_MC_control(T, K, S0, r, sigma, N, int(M_i))
+#     p_tw = PD_TW(T, K, S0, r, sigma, N)
 
-    P_MC.append(p_mc)
-    CI_Down_MC.append(ci_down_mc)
-    CI_Up_MC.append(ci_up_mc)
+#     P_MC.append(p_mc)
+#     CI_Down_MC.append(ci_down_mc)
+#     CI_Up_MC.append(ci_up_mc)
 
-    P_VC.append(p_vc)
-    CI_Down_VC.append(ci_down_vc)
-    CI_Up_VC.append(ci_up_vc)
+#     P_VC.append(p_vc)
+#     CI_Down_VC.append(ci_down_vc)
+#     CI_Up_VC.append(ci_up_vc)
 
-    P_TW.append(p_tw)
+#     P_TW.append(p_tw)
 
-P_MC = np.array(P_MC)
-P_VC = np.array(P_VC)
-P_TW = np.array(P_TW)
+# P_MC = np.array(P_MC)
+# P_VC = np.array(P_VC)
+# P_TW = np.array(P_TW)
 
 
 
@@ -291,18 +286,23 @@ P_TW = np.array(P_TW)
 # Q9 : Tracé de P^Δt,MC,ctrl en fonction de K 
 ####################################
 
-K_vals = np.linspace(0.01, 2, 50)
-Prices_MC_ctrl = []
-CI_up_ctrl = []
-CI_down_ctrl = []
-Prices_TW = []
+# vals = np.linspace(1,0, 50,endpoint=False) 
+# K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
+# # print(K_vals)
+# plt.hist(K_vals,25)
+# plt.show()
 
-for K in K_vals:
-    price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma, N, M)
-    Prices_MC_ctrl.append(price_ctrl)
-    CI_up_ctrl.append(ci_up_ctrl)
-    CI_down_ctrl.append(ci_down_ctrl)
-    Prices_TW.append(PD_TW(T, K, S0, r, sigma, N))
+# Prices_MC_ctrl = []
+# CI_up_ctrl = []
+# CI_down_ctrl = []
+# Prices_TW = []
+
+# for K in K_vals:
+#     price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma, N, M)
+#     Prices_MC_ctrl.append(price_ctrl)
+#     CI_up_ctrl.append(ci_up_ctrl)
+#     CI_down_ctrl.append(ci_down_ctrl)
+#     Prices_TW.append(PD_TW(T, K, S0, r, sigma, N))
 
 # plt.close()  
 # plt.figure(figsize=(10, 4)) 
@@ -316,9 +316,9 @@ for K in K_vals:
 # plt.grid()
 # plt.show()
 
-# Différence
-Prices_MC_ctrl = np.array(Prices_MC_ctrl)
-Prices_TW = np.array(Prices_TW)
+# # Différence
+# Prices_MC_ctrl = np.array(Prices_MC_ctrl)
+# Prices_TW = np.array(Prices_TW)
 
 # plt.close()
 # plt.figure(figsize=(10, 4))
@@ -339,19 +339,21 @@ Prices_TW = np.array(Prices_TW)
 #####################################
 # Q10 : Tracé de P^Δt,MC,ctrl en fonction de sigma
 ####################################
-K = 1
-sigma_vals = np.linspace(0.01, 0.8, 50)
-Prices_MC_ctrl = []
-CI_up_ctrl = []
-CI_down_ctrl = []
-Prices_TW = []
 
-for sigma in sigma_vals:
-    price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma, N, M)
-    Prices_MC_ctrl.append(price_ctrl)
-    CI_up_ctrl.append(ci_up_ctrl)
-    CI_down_ctrl.append(ci_down_ctrl)
-    Prices_TW.append(PD_TW(T, K, S0, r, sigma, N))
+K = 1
+# nb=50
+# sigma_vals = np.linspace(0.8,0, nb,endpoint=False)
+# Prices_MC_ctrl =np.zeros(nb)
+# CI_up_ctrl =    np.zeros(nb)
+# CI_down_ctrl =  np.zeros(nb)
+# Prices_TW =     np.zeros(nb)
+
+# for i in range(nb):
+#     price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma_vals[i], N, M)
+#     Prices_MC_ctrl[i]=price_ctrl
+#     CI_up_ctrl[i] = ci_up_ctrl
+#     CI_down_ctrl[i] = ci_down_ctrl
+#     Prices_TW[i] = PD_TW(T, K, S0, r, sigma_vals[i], N)
 
 # plt.close()  
 # plt.figure(figsize=(10, 4))
@@ -365,13 +367,12 @@ for sigma in sigma_vals:
 # plt.grid()
 # plt.show()
 
-# Différence
-Prices_MC_ctrl = np.array(Prices_MC_ctrl)
-Prices_TW = np.array(Prices_TW)
+# # Différence
+# diff = Prices_MC_ctrl - Prices_TW
 
 # plt.close()  
 # plt.figure(figsize=(10, 4)) 
-# plt.plot(sigma_vals, Prices_MC_ctrl - Prices_TW, label="P^Δt,MC,ctrl - P^Δt,TW", color="blue")
+# plt.plot(sigma_vals,diff, label="P^Δt,MC,ctrl - P^Δt,TW", color="blue")
 # plt.axhline(0, linestyle='--', color='gray')
 # plt.xlabel("Volatilité σ")
 # plt.ylabel("Différence")
@@ -384,26 +385,28 @@ Prices_TW = np.array(Prices_TW)
 #####################################
 # Q11 : Tracé de P^Δt,TW en fonction de dt 
 ####################################
-sigma = 0.3
+# sigma = 0.3
 
-K_vals = np.linspace(0.01, 2, 50)
-Prices_TW_0 = []
-Prices_TW_1_252 = []
-Prices_TW_1_52 = []
-Prices_TW_1_12 = []
+# nb=100
+# vals = np.linspace(1,0, nb,endpoint=False) 
+# K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
+# Prices_TW_0 = []
+# Prices_TW_1_252 = []
+# Prices_TW_1_52 = []
+# Prices_TW_1_12 = []
 
-for K in K_vals:
-    Prices_TW_0.append(PD_TW(1, K, S0, r, sigma, 1000000))  # dt = 0
-    Prices_TW_1_252.append(PD_TW(1, K, S0, r, sigma, 252))  # dt = 1/252
-    Prices_TW_1_52.append(PD_TW(1, K, S0, r, sigma, 52))  # dt = 1/52
-    Prices_TW_1_12.append(PD_TW(1, K, S0, r, sigma, 12))  # dt = 1/12
+# for K in K_vals:
+#     Prices_TW_0.append(PD_TW(1, K, S0, r, sigma, 1000000))  # dt = 0
+#     Prices_TW_1_252.append(PD_TW(1, K, S0, r, sigma, 252))  # dt = 1/252
+#     Prices_TW_1_52.append(PD_TW(1, K, S0, r, sigma, 52))  # dt = 1/52
+#     Prices_TW_1_12.append(PD_TW(1, K, S0, r, sigma, 12))  # dt = 1/12
 
 # plt.close() 
 # plt.figure(figsize=(10, 4))
-# plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='--')
-# plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle=':')
-# plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-.')
-# plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)')
+# plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)',linestyle='-')
 # plt.xlabel('Prix d\'exercice K')
 # plt.ylabel('Prix')
 # plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
@@ -421,16 +424,20 @@ for K in K_vals:
 # Q12 : Tracé de la différence P^Δt,MC,ctrl - P^Δt,TW pour différents Δt
 ####################################
 
-K_vals = np.linspace(0.01, 2, 50)
+nb=20
+vals = np.linspace(1,0, nb,endpoint=False) 
+K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
 Prices_diff_1_252 = []
 Prices_diff_1_52 = []
 Prices_diff_1_12 = []
 
 for K in K_vals:
-    Prices_diff_1_252.append(PDt_MC_control(1, K, S0, r, sigma, 252, M) - PD_TW(1, K, S0, r, sigma, 252))  # Δt = 1/252
-    Prices_diff_1_52.append(PDt_MC_control(1, K, S0, r, sigma, 52, M) - PD_TW(1, K, S0, r, sigma, 52))  # Δt = 1/52
-    Prices_diff_1_12.append(PDt_MC_control(1, K, S0, r, sigma, 12, M) - PD_TW(1, K, S0, r, sigma, 12))  # Δt = 1/12
+    Prices_diff_1_252.append(PDt_MC_control(1, K, S0, r, sigma, 252, M)[0] - PD_TW(1, K, S0, r, sigma, 252))  # Δt = 1/252
+    Prices_diff_1_52.append(PDt_MC_control(1, K, S0, r, sigma, 52, M)[0] - PD_TW(1, K, S0, r, sigma, 52))  # Δt = 1/52
+    Prices_diff_1_12.append(PDt_MC_control(1, K, S0, r, sigma, 12, M)[0] - PD_TW(1, K, S0, r, sigma, 12))  # Δt = 1/12
 
+
+print(Prices_diff_1_12)
 plt.close() 
 plt.figure(figsize=(10, 4))
 plt.plot(K_vals, Prices_diff_1_252, label='Δt = 1/252 (un jour)')
