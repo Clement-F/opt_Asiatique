@@ -277,21 +277,21 @@ P_TW = np.array(P_TW)
 
 
 
-plt.plot(m, P_MC, label='P^Δt,MC')
-plt.fill_between(m, CI_Down_MC, CI_Up_MC, alpha=0.2, label='IC 90% P^Δt,MC')
+# plt.plot(m, P_MC, label='P^Δt,MC')
+# plt.fill_between(m, CI_Down_MC, CI_Up_MC, alpha=0.2, label='IC 90% P^Δt,MC')
 
-plt.plot(m, P_VC, label='P^Δt,MC,ctrl')
-plt.fill_between(m, CI_Down_VC, CI_Up_VC, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
+# plt.plot(m, P_VC, label='P^Δt,MC,ctrl')
+# plt.fill_between(m, CI_Down_VC, CI_Up_VC, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
 
-plt.plot(m, P_TW, label='P^Δt,TW')
+# plt.plot(m, P_TW, label='P^Δt,TW')
 
-plt.xlabel('Nombre de trajectoires M')
-plt.ylabel('Prix')
-plt.legend()
-plt.title('Comparaison des estimateurs Monte Carlo pour une option asiatique')
-plt.xscale('log')
-plt.grid()
-plt.show()
+# plt.xlabel('Nombre de trajectoires M')
+# plt.ylabel('Prix')
+# plt.legend()
+# plt.title('Comparaison des estimateurs Monte Carlo pour une option asiatique')
+# plt.xscale('log')
+# plt.grid()
+# plt.show()
 
 
 #####################################
@@ -599,3 +599,87 @@ K = 1
 # ax.legend(loc='upper left', ncols=3)
 
 # plt.savefig("log-time calc")
+
+
+
+
+#####################################
+# Q16 : Réduction de variance par variable de contrôle en fonction de K
+# ####################################
+
+
+def PDt_MC_control2(T, K, S0, r, sigma, N, M):
+
+    dt = T / N
+    t = np.linspace(0, T, N+1)
+
+    puts = np.zeros(M)
+
+
+    for j in range(M):
+        W = Brown_traj(T, N)
+        S = S0 * np.exp((r - 0.5 * sigma**2) * t + sigma * W)
+        
+        S_bar = np.mean(S[1:])
+        puts[j] = np.exp(-r * T) * max(K - S_bar, 0)
+        
+    control_term = (S0 / N) * np.sum(np.exp(r * np.arange(1, N + 1) * dt)) - K
+    control_price = np.exp(-r * T) * control_term
+
+    P = control_price + np.mean(puts)
+
+    # Erreur-type
+    std = np.std(puts)
+    error = 1.65 * std / np.sqrt(M)
+
+    CI_up = P + error
+    CI_down = P - error
+
+    return P, CI_down, CI_up, error
+
+
+# Test d'application :
+T = 0.5
+S0 = 1
+r = 0.01
+sigma = 0.3
+dt = 1 / 252
+N = int(T / dt)  
+M = 10000 
+
+
+vals = np.linspace(1,0, 50,endpoint=False) 
+K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
+
+Prices_MC_ctrl = []
+CI_up_ctrl = []
+CI_down_ctrl = []
+Prices_MC_ctrl2 = []
+CI_up_ctrl2 = []
+CI_down_ctrl2 = []
+Prices_TW = []
+
+for K in K_vals:
+    price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma, N, M)
+    price_ctrl2, ci_down_ctrl2, ci_up_ctrl2, _ = PDt_MC_control2(T, K, S0, r, sigma, N, M)
+    Prices_MC_ctrl.append(price_ctrl)
+    CI_up_ctrl.append(ci_up_ctrl)
+    CI_down_ctrl.append(ci_down_ctrl)
+    Prices_MC_ctrl2.append(price_ctrl2)
+    CI_up_ctrl2.append(ci_up_ctrl2)
+    CI_down_ctrl2.append(ci_down_ctrl2)
+    Prices_TW.append(PD_TW(T, K, S0, r, sigma, N))
+
+plt.close()  
+plt.figure(figsize=(10, 4)) 
+plt.plot(K_vals, Prices_MC_ctrl, label='P^Δt,MC,ctrl', linestyle='-')
+plt.fill_between(K_vals, CI_down_ctrl, CI_up_ctrl, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
+plt.plot(K_vals, Prices_MC_ctrl2, label='P^Δt,MC,ctrl2', linestyle='-')
+plt.fill_between(K_vals, CI_down_ctrl2, CI_up_ctrl2, alpha=0.2, label='IC 90% P^Δt,MC,ctrl2')
+plt.plot(K_vals, Prices_TW, label='P^Δt,TW', linestyle='--')
+plt.xlabel('Strike K')
+plt.ylabel('Prix')
+plt.title('Prix de l\'option asiatique en fonction de K')
+plt.legend()
+plt.grid()
+plt.show()
