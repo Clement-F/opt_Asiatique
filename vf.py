@@ -377,60 +377,60 @@ K = 1
 #####################################
 # Q11 : Tracé de P^Δt,TW en fonction de dt 
 ####################################
-sigma = 0.3
+# sigma = 0.3
 
-nb=100
-vals = np.linspace(1,0, nb,endpoint=False) 
-K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
-Prices_TW_0 =       np.zeros(nb)
-Prices_TW_1_252 =   np.zeros(nb)
-Prices_TW_1_52 =    np.zeros(nb)
-Prices_TW_1_12 =    np.zeros(nb)
+# nb=10
+# vals = np.linspace(1,0, nb,endpoint=False) 
+# K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
+# Prices_TW_0 =       np.zeros(nb)
+# Prices_TW_1_252 =   np.zeros(nb)
+# Prices_TW_1_52 =    np.zeros(nb)
+# Prices_TW_1_12 =    np.zeros(nb)
 
-for k in range(nb):
-    Prices_TW_0[k]      = PD_TW(1, K_vals[k], S0, r, sigma, 1000000)  # dt = 0
-    Prices_TW_1_252[k]  = PD_TW(1, K_vals[k], S0, r, sigma, 252)  # dt = 1/252
-    Prices_TW_1_52[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 52)  # dt = 1/52
-    Prices_TW_1_12[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 12)  # dt = 1/12
+# for k in range(nb):
+#     Prices_TW_0[k]      = PD_TW(1, K_vals[k], S0, r, sigma, 1000000)  # dt = 0
+#     Prices_TW_1_252[k]  = PD_TW(1, K_vals[k], S0, r, sigma, 252)  # dt = 1/252
+#     Prices_TW_1_52[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 52)  # dt = 1/52
+#     Prices_TW_1_12[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 12)  # dt = 1/12
 
-plt.close() 
-plt.figure(figsize=(10, 4))
-plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='-')
-plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle='-')
-plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-')
-plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)',linestyle='-')
-plt.xlabel('Prix d\'exercice K')
-plt.ylabel('Prix')
-plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
-plt.legend()
-plt.grid()
+# plt.close() 
+# plt.figure(figsize=(10, 4))
+# plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)',linestyle='-')
+# plt.xlabel('Prix d\'exercice K')
+# plt.ylabel('Prix')
+# plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
+# plt.legend()
+# plt.grid()
 
-plt.xlim(0.8, 1.2)
-plt.ylim(0, 0.2)
+# plt.xlim(0.8, 1.2)
+# plt.ylim(0, 0.2)
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
 
-plt.close() 
-plt.figure(figsize=(10, 4))
-plt.plot(K_vals, np.log(Prices_TW_1_252  - Prices_TW_0), label='Δt = 1/252 (un jour)', linestyle='-')
-plt.plot(K_vals, np.log(Prices_TW_1_52   - Prices_TW_0), label='Δt = 1/52 (une semaine)', linestyle='-')
-plt.plot(K_vals, np.log(Prices_TW_1_12   - Prices_TW_0), label='Δt = 1/12 (un mois)',linestyle='-')
-plt.xlabel('log-différence de Prix d\'exercice K')
-plt.ylabel('Prix')
-plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
-plt.legend()
-plt.grid()
+# plt.close() 
+# plt.figure(figsize=(10, 4))
+# plt.plot(K_vals, np.log(Prices_TW_1_252  - Prices_TW_1_12), label='Δt = 1/252 (un jour)', linestyle='-')
+# plt.plot(K_vals, np.log(Prices_TW_1_52   - Prices_TW_1_12), label='Δt = 1/52 (une semaine)', linestyle='-')
+# plt.plot(K_vals, np.log(Prices_TW_0   - Prices_TW_1_12), label='Δt = 1/12 (un mois)',linestyle='-')
+# plt.xlabel('log-différence de Prix d\'exercice K')
+# plt.ylabel('Prix')
+# plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
+# plt.legend()
+# plt.grid()
 
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
 
 #####################################
 # Q12 : Tracé de la différence P^Δt,MC,ctrl - P^Δt,TW pour différents Δt
-####################################
+###################################
 
-# nb=50
+# nb=10
 # vals = np.linspace(1,0, nb,endpoint=False) 
 # K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
 # Prices_diff_1_252 = []
@@ -462,28 +462,85 @@ plt.show()
 # Q13 : temps de calcul pour différentes échelles de temps
 ####################################
 
-# K=1
-# S0=1
-# r=0.01
-# sigma =0.3
-# M=1000
-# dt = [252,52,12]
+K=1
+S0=1
+r=0.01
+sigma =0.3
+M=1000
+dt = [12,52,252]
+elapse_control, elapse_TW = np.zeros(len(dt)), np.zeros(len(dt))
+nb=100   #nombre de temps échantillons
 
-# for i in range(3):
-#     start = time.time()
+for i in range(len(dt)):
+    start = time.time()
 
-#     for n in range(100):
-#         lorem = PDt_MC_control(1, K, S0, r, sigma, dt[i], M)
-#     elapse_control = time.time()-start
-#     elapse_control /=100
+    for n in range(nb):
+        lorem = PDt_MC_control(1, K, S0, r, sigma, dt[i], M)
+    elapse_control[i] = time.time()-start
+    elapse_control[i] = round(elapse_control[i]/nb,5)
     
-#     start = time.time()
-#     for n in range(100):
-#         lorem = PD_TW(1, K, S0, r, sigma, 12)
-#     elapse_TW = time.time()- start
-#     elapse_TW /=100
-#     print("pour l'écart ",dt[i])
-#     print("l'estimateur de MC a donné un résultat en ", elapse_control)
-#     print("et l'estimateur de TW a donné un résultat en ", elapse_TW)
+    start2 = time.time()
+    for n in range(nb):
+        lorem = PD_TW(1, K, S0, r, sigma, 12)
+    elapse_TW[i] = time.time()- start2
+    elapse_TW[i] = round(elapse_TW[i]/nb,8)
+
+    print("pour l'écart ",dt[i])
+    print("l'estimateur de MC a donné un résultat en ", elapse_control[i])
+    print("et l'estimateur de TW a donné un résultat en ", elapse_TW[i])
+
+abs = ["dt=1/12","dt=1/52","dt=1/252"]
+
+# plt.bar(abs,elapse_control,label="temps de calcul de l'estimateur MC")
+# plt.bar(abs, elapse_TW, label="temps de calcul de l'estimateur TW")
+
+# plt.legend()
+# plt.show()
 
 
+temps_calc = {
+    'TW' : elapse_TW,
+    'MC' : elapse_control
+}
+
+temps_calc_log = {
+    'TW' : np.log(elapse_TW)/np.log(10),
+    'MC' : np.log(elapse_control)/np.log(10)
+}
+
+x = np.arange(len(abs))  # the label locations
+width = 0.25  # the width of the bars
+multiplier = 0
+
+fig, ax = plt.subplots(layout='constrained')
+
+for attribute, measurement in temps_calc.items():
+    offset = width * multiplier
+    rects = ax.bar(x + offset, measurement, width, label=attribute)
+    ax.bar_label(rects, padding=3)
+    multiplier += 1
+
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('temps de calcul (s)')
+ax.set_title('temps de calcul des deux estimateurs pour différents pas de temps ')
+ax.set_xticks(x + width, abs)
+ax.legend(loc='upper left', ncols=3)
+
+plt.savefig("time calc")
+
+plt.close()
+fig, ax = plt.subplots(layout='constrained')
+
+for attribute, measurement in temps_calc_log.items():
+    offset = width * multiplier
+    rects = ax.bar(x + offset, measurement, width, label=attribute)
+    ax.bar_label(rects, padding=3)
+    multiplier += 1
+
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('log s')
+ax.set_title('temps de calcul des deux estimateurs pour différents pas de temps')
+ax.set_xticks(x + width, abs)
+ax.legend(loc='upper left', ncols=3)
+
+plt.savefig("log-time calc")
