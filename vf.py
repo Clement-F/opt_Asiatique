@@ -375,7 +375,7 @@ K = 1
 # plt.show()
 
 #####################################
-# Q11 : Tracé de P^Δt,TW en fonction de dt 
+# Q11 : Tracé de P^Δt,TW en fonction K pour plusieurs Δt
 ####################################
 sigma = 0.3
 
@@ -388,71 +388,110 @@ Prices_TW_1_52 =    np.zeros(nb)
 Prices_TW_1_12 =    np.zeros(nb)
 
 for k in range(nb):
-    Prices_TW_0[k]      = PD_TW(1, K_vals[k], S0, r, sigma, 1000000)  # dt = 0
-    Prices_TW_1_252[k]  = PD_TW(1, K_vals[k], S0, r, sigma, 252)  # dt = 1/252
-    Prices_TW_1_52[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 52)  # dt = 1/52
-    Prices_TW_1_12[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 12)  # dt = 1/12
+    Prices_TW_0[k]      = PD_TW(1, K_vals[k], S0, r, sigma, 1000000)  # Δt = 0
+    Prices_TW_1_252[k]  = PD_TW(1, K_vals[k], S0, r, sigma, 252)  # Δt = 1/252
+    Prices_TW_1_52[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 52)  # Δt = 1/52
+    Prices_TW_1_12[k]   = PD_TW(1, K_vals[k], S0, r, sigma, 12)  # Δt = 1/12
 
-plt.close() 
-plt.figure(figsize=(10, 4))
-plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='-')
-plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle='-')
-plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-')
-plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)',linestyle='-')
-plt.xlabel('Prix d\'exercice K')
-plt.ylabel('Prix')
-plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
-plt.legend()
-plt.grid()
+# plt.close() 
+# plt.figure(figsize=(10, 4))
+# plt.plot(K_vals, Prices_TW_0, label='Δt = 0 (cas continu)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_252, label='Δt = 1/252 (un jour)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_52, label='Δt = 1/52 (une semaine)', linestyle='-')
+# plt.plot(K_vals, Prices_TW_1_12, label='Δt = 1/12 (un mois)',linestyle='-')
+# plt.xlabel('Strike K')
+# plt.ylabel('Prix')
+# plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction K pour plusieurs Δt')
+# plt.legend()
+# plt.grid()
 
-plt.xlim(0.8, 1.2)
-plt.ylim(0, 0.2)
+# # plt.xlim(0.8, 1.2)   #zoom sur l'axe des K autour de 1
+# # plt.ylim(0, 0.2)
 
-plt.tight_layout()
-plt.show()
-
-plt.close() 
-plt.figure(figsize=(10, 4))
-plt.plot(K_vals, np.log(Prices_TW_1_252  - Prices_TW_0), label='Δt = 1/252 (un jour)', linestyle='-')
-plt.plot(K_vals, np.log(Prices_TW_1_52   - Prices_TW_0), label='Δt = 1/52 (une semaine)', linestyle='-')
-plt.plot(K_vals, np.log(Prices_TW_1_12   - Prices_TW_0), label='Δt = 1/12 (un mois)',linestyle='-')
-plt.xlabel('log-différence de Prix d\'exercice K')
-plt.ylabel('Prix')
-plt.title('Prix de l\'option asiatique selon Turnbull & Wakeman en fonction de Δt')
-plt.legend()
-plt.grid()
+# plt.tight_layout()
+# plt.show()
 
 
-plt.tight_layout()
-plt.show()
+
+# Tracé de la différence en échelle logarithmique
+
+# plt.close() 
+# plt.figure(figsize=(10, 4))
+# plt.plot(K_vals, np.log(Prices_TW_1_252  - Prices_TW_0), label='Δt = 1/252 (un jour)', linestyle='-')
+# plt.plot(K_vals, np.log(Prices_TW_1_52   - Prices_TW_0), label='Δt = 1/52 (une semaine)', linestyle='-')
+# plt.plot(K_vals, np.log(Prices_TW_1_12   - Prices_TW_0), label='Δt = 1/12 (un mois)',linestyle='-')
+# plt.xlabel('Strike K')
+# plt.ylabel(r"$\log(\hat{P}_N - \hat{P}_0)$")
+# plt.title('Erreur d’approximation de Turnbull & Wakeman due à la discrétisation (log-scale)')
+# plt.legend()
+# plt.grid()
+
+
+# plt.tight_layout()
+# plt.show()
 
 #####################################
 # Q12 : Tracé de la différence P^Δt,MC,ctrl - P^Δt,TW pour différents Δt
 ####################################
 
-# nb=50
-# vals = np.linspace(1,0, nb,endpoint=False) 
-# K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
-# Prices_diff_1_252 = []
-# Prices_diff_1_52 = []
-# Prices_diff_1_12 = []
+nb=50
+vals = np.linspace(1,0, nb,endpoint=False) 
+K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
+Prices_diff_1_252 = []
+Prices_diff_1_52 = []
+Prices_diff_1_12 = []
 
-# for K in K_vals:
-#     Prices_diff_1_252.append(PDt_MC_control(1, K, S0, r, sigma, 252, M)[0] - PD_TW(1, K, S0, r, sigma, 252))  # Δt = 1/252
-#     Prices_diff_1_52.append(PDt_MC_control(1, K, S0, r, sigma, 52, M)[0] - PD_TW(1, K, S0, r, sigma, 52))  # Δt = 1/52
-#     Prices_diff_1_12.append(PDt_MC_control(1, K, S0, r, sigma, 12, M)[0] - PD_TW(1, K, S0, r, sigma, 12))  # Δt = 1/12
+CI_up_diff_1_252 = []
+CI_down_diff_1_252 = []
+
+CI_up_diff_1_52 = []  
+CI_down_diff_1_52 = []  
+
+CI_up_diff_1_12 = []
+CI_down_diff_1_12 = []
+
+
+for K in K_vals:
+    a_252, b_252, c_252, _ = PDt_MC_control(1, K, S0, r, sigma, 252, M)  # Δt = 1/252
+    a_52, b_52, c_52, _ = PDt_MC_control(1, K, S0, r, sigma, 52, M)    # Δt = 1/52
+    a_12, b_12, c_12, _ = PDt_MC_control(1, K, S0, r, sigma, 12, M)    # Δt = 1/12
+    k_252 = PD_TW(1, K, S0, r, sigma, 252)
+    k_52 = PD_TW(1, K, S0, r, sigma, 52)
+    k_12 = PD_TW(1, K, S0, r, sigma, 12)
+
+    Prices_diff_1_252.append(a_252 - k_252 )  # Δt = 1/252
+    Prices_diff_1_52.append(a_52 - k_52)  # Δt = 1/52
+    Prices_diff_1_12.append(a_12 - k_12)  # Δt = 1/12
+
+    CI_up_diff_1_252.append(c_252 - k_252)  # Δt = 1/252
+    CI_down_diff_1_252.append(b_252 - k_252)  # Δt = 1/252
+
+    CI_up_diff_1_52.append(c_52 - k_52)  # Δt = 1/52
+    CI_down_diff_1_52.append(b_52 - k_52)  # Δt = 1/52
+
+    CI_up_diff_1_12.append(c_12 - k_12)  # Δt = 1/12
+    CI_down_diff_1_12.append(b_12 - k_12)  # Δt = 1/12
 
 # plt.close() 
 # plt.figure(figsize=(10, 4))
 # plt.plot(K_vals, Prices_diff_1_252, label='Δt = 1/252 (un jour)')
 # plt.plot(K_vals, Prices_diff_1_52, label='Δt = 1/52 (une semaine)')
 # plt.plot(K_vals, Prices_diff_1_12, label='Δt = 1/12 (un mois)')
+
+# plt.fill_between(K_vals, CI_down_diff_1_252, CI_up_diff_1_252, alpha=0.2)
+# plt.fill_between(K_vals, CI_down_diff_1_52, CI_up_diff_1_52, alpha=0.2)
+# plt.fill_between(K_vals, CI_down_diff_1_12, CI_up_diff_1_12, alpha=0.2)
+
 # plt.xlabel('Prix d\'exercice K')
 # plt.ylabel('Différence')
+# plt.ylabel(r"$P^{\Delta t, MC, ctrl} - P^{\Delta t, TW}$")
 # plt.axhline(0, linestyle='--', color='gray')
-# plt.title('Différence entre l\' estimateur Monte Carlo et l\' approximation de Turnbull & Wakeman en fonction de K pour plusieurs Δt')
+# plt.title(r'Différence entre $P^{\Delta t, MC, ctrl}$  et $P^{\Delta t, TW}$ en fonction de K pour plusieurs Δt')
 # plt.legend()
 # plt.grid()
+
+# # plt.xlim(0.9, 1.1)   #zoom sur l'axe des K autour de 1
+# # plt.ylim(-0.0006, 0.0002)
 
 # plt.tight_layout()
 # plt.show()
