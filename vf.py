@@ -19,9 +19,8 @@ def approx_norm_cdf(x):
     #calcul de l'approx
     t = 1/(1+b0*x)
     approx = 1/np.sqrt(2*np.pi) * np.exp(-1/2 * x**2)
-    poly = b1*t + b2*t**2 + b3*t**3 + b4* t**4 + b5* t**5
+    poly = b1*t + b2* t**2 + b3* t**3 + b4* t**4 + b5* t**5
     return 1-approx*poly
-
 
 
 #####################################
@@ -38,7 +37,7 @@ def P0_TW(T, K, s0, r, sig):
     d1 = (np.log(s0/K) + (rA + 0.5*sigA**2)*T) / (sigA * np.sqrt(T))
     d2 = d1 - sigA * np.sqrt(T)
 
-    P = np.exp(-r*T) * (s0*np.exp(rA*T)*approx_norm_cdf(d1) - K*approx_norm_cdf(d2))
+    P = np.exp(-r*T) * (s0*np.exp(rA*T)*ss.norm.cdf(d1) - K*ss.norm.cdf(d2))
     return P
 
 # P0 = P0_TW(0.5, 1, 1, 0.01, 0.3)
@@ -66,7 +65,7 @@ def PD_TW(T, K, S0, r, sig, N):
     d1 = (np.log(S0/K) + (rA + 0.5*sigA**2)*T) / (sigA * np.sqrt(T))
     d2 = d1 - sigA * np.sqrt(T)
 
-    P = np.exp(-r*T) * (S0*np.exp(rA*T)*approx_norm_cdf(d1) - K*approx_norm_cdf(d2))
+    P = np.exp(-r*T) * (S0*np.exp(rA*T)*ss.norm.cdf(d1) - K*ss.norm.cdf(d2))
     return P
 
 # Test d'application :
@@ -215,7 +214,7 @@ def PDt_MC_control(T, K, S0, r, sigma, N, M):
     
     d1 = (np.log(S0 / K) + (r_E + 0.5 * sigma_E**2) * T) / (sigma_E * np.sqrt(T))
     d2 = d1 - sigma_E * np.sqrt(T)
-    Z_exact = np.exp(-r * T) * (S0 * np.exp(r_E * T) * approx_norm_cdf(d1) - K * approx_norm_cdf(d2))
+    Z_exact = np.exp(-r * T) * (S0 * np.exp(r_E * T) * ss.norm.cdf(d1) - K * ss.norm.cdf(d2))
 
     P_control = np.mean(payoffs) -  Z_mean + Z_exact
 
@@ -250,30 +249,30 @@ M = 10000
 ####################################
 
 
-m = np.logspace(1, 4, 100, dtype=int)  # de 10 à 10_000, 100 points équitablement réparti en log
+# m = np.logspace(1, 4, 100, dtype=int)  # de 10 à 10_000, 100 points équitablement réparti en log
 
-P_MC, CI_Down_MC, CI_Up_MC = [], [], []
-P_VC, CI_Down_VC, CI_Up_VC = [], [], []
-P_TW = []
+# P_MC, CI_Down_MC, CI_Up_MC = [], [], []
+# P_VC, CI_Down_VC, CI_Up_VC = [], [], []
+# P_TW = []
 
-for M_i in m:
-    p_mc, ci_down_mc, ci_up_mc, _ = PDt_MC(T, K, S0, r, sigma, N, int(M_i))
-    p_vc, ci_down_vc, ci_up_vc, _ = PDt_MC_control(T, K, S0, r, sigma, N, int(M_i))
-    p_tw = PD_TW(T, K, S0, r, sigma, N)
+# for M_i in m:
+#     p_mc, ci_down_mc, ci_up_mc, _ = PDt_MC(T, K, S0, r, sigma, N, int(M_i))
+#     p_vc, ci_down_vc, ci_up_vc, _ = PDt_MC_control(T, K, S0, r, sigma, N, int(M_i))
+#     p_tw = PD_TW(T, K, S0, r, sigma, N)
 
-    P_MC.append(p_mc)
-    CI_Down_MC.append(ci_down_mc)
-    CI_Up_MC.append(ci_up_mc)
+#     P_MC.append(p_mc)
+#     CI_Down_MC.append(ci_down_mc)
+#     CI_Up_MC.append(ci_up_mc)
 
-    P_VC.append(p_vc)
-    CI_Down_VC.append(ci_down_vc)
-    CI_Up_VC.append(ci_up_vc)
+#     P_VC.append(p_vc)
+#     CI_Down_VC.append(ci_down_vc)
+#     CI_Up_VC.append(ci_up_vc)
 
-    P_TW.append(p_tw)
+#     P_TW.append(p_tw)
 
-P_MC = np.array(P_MC)
-P_VC = np.array(P_VC)
-P_TW = np.array(P_TW)
+# P_MC = np.array(P_MC)
+# P_VC = np.array(P_VC)
+# P_TW = np.array(P_TW)
 
 
 
@@ -608,78 +607,85 @@ K = 1
 # ####################################
 
 
-def PDt_MC_control2(T, K, S0, r, sigma, N, M):
+# def PDt_MC_control2(T, K, S0, r, sigma, N, M):
 
-    dt = T / N
-    t = np.linspace(0, T, N+1)
+#     dt = T / N
+#     t = np.linspace(0, T, N+1)
 
-    puts = np.zeros(M)
+#     puts = np.zeros(M)
 
 
-    for j in range(M):
-        W = Brown_traj(T, N)
-        S = S0 * np.exp((r - 0.5 * sigma**2) * t + sigma * W)
+#     for j in range(M):
+#         W = Brown_traj(T, N)
+#         S = S0 * np.exp((r - 0.5 * sigma**2) * t + sigma * W)
         
-        S_bar = np.mean(S[1:])
-        puts[j] = np.exp(-r * T) * max(K - S_bar, 0)
+#         S_bar = np.mean(S[1:])
+#         puts[j] = np.exp(-r * T) * max(K - S_bar, 0)
         
-    control_term = (S0 / N) * np.sum(np.exp(r * np.arange(1, N + 1) * dt)) - K
-    control_price = np.exp(-r * T) * control_term
+#     control_term = (S0 / N) * np.sum(np.exp(r * np.arange(1, N + 1) * dt)) - K
+#     control_price = np.exp(-r * T) * control_term
 
-    P = control_price + np.mean(puts)
+#     P = control_price + np.mean(puts)
 
-    # Erreur-type
-    std = np.std(puts)
-    error = 1.65 * std / np.sqrt(M)
+#     # Erreur-type
+#     std = np.std(puts)
+#     error = 1.65 * std / np.sqrt(M)
 
-    CI_up = P + error
-    CI_down = P - error
+#     CI_up = P + error
+#     CI_down = P - error
 
-    return P, CI_down, CI_up, error
-
-
-# Test d'application :
-T = 0.5
-S0 = 1
-r = 0.01
-sigma = 0.3
-dt = 1 / 252
-N = int(T / dt)  
-M = 10000 
+#     return P, CI_down, CI_up, error
 
 
-vals = np.linspace(1,0, 50,endpoint=False) 
-K_vals = ss.beta(2,2).ppf(vals)*2           # liste de points dans (0,2] avec une concentration autour de 1
+# # Test d'application :
+# T = 0.5
+# S0 = 1
+# r = 0.01
+# sigma = 0.3
+# dt = 1 / 252
+# N = int(T / dt)  
+# M = 1000 
 
-Prices_MC_ctrl = []
-CI_up_ctrl = []
-CI_down_ctrl = []
-Prices_MC_ctrl2 = []
-CI_up_ctrl2 = []
-CI_down_ctrl2 = []
-Prices_TW = []
 
-for K in K_vals:
-    price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma, N, M)
-    price_ctrl2, ci_down_ctrl2, ci_up_ctrl2, _ = PDt_MC_control2(T, K, S0, r, sigma, N, M)
-    Prices_MC_ctrl.append(price_ctrl)
-    CI_up_ctrl.append(ci_up_ctrl)
-    CI_down_ctrl.append(ci_down_ctrl)
-    Prices_MC_ctrl2.append(price_ctrl2)
-    CI_up_ctrl2.append(ci_up_ctrl2)
-    CI_down_ctrl2.append(ci_down_ctrl2)
-    Prices_TW.append(PD_TW(T, K, S0, r, sigma, N))
+# K_vals = np.linspace(2,0, 50,endpoint=False) 
+# # K_vals = ss.beta(2,2).ppf(vals)*1.6           # liste de points dans (0,2] avec une concentration autour de 1
 
-plt.close()  
-plt.figure(figsize=(10, 4)) 
-plt.plot(K_vals, Prices_MC_ctrl, label='P^Δt,MC,ctrl', linestyle='-')
-plt.fill_between(K_vals, CI_down_ctrl, CI_up_ctrl, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
-plt.plot(K_vals, Prices_MC_ctrl2, label='P^Δt,MC,ctrl2', linestyle='-')
-plt.fill_between(K_vals, CI_down_ctrl2, CI_up_ctrl2, alpha=0.2, label='IC 90% P^Δt,MC,ctrl2')
-plt.plot(K_vals, Prices_TW, label='P^Δt,TW', linestyle='--')
-plt.xlabel('Strike K')
-plt.ylabel('Prix')
-plt.title('Prix de l\'option asiatique en fonction de K')
-plt.legend()
-plt.grid()
-plt.show()
+# Prices_MC_ctrl = []
+# CI_up_ctrl = []
+# CI_down_ctrl = []
+# Prices_MC_ctrl2 = []
+# CI_up_ctrl2 = []
+# CI_down_ctrl2 = []
+# Prices_TW = []
+
+# for K in K_vals:
+#     price_ctrl, ci_down_ctrl, ci_up_ctrl, _ = PDt_MC_control(T, K, S0, r, sigma, N, M)
+#     price_ctrl2, ci_down_ctrl2, ci_up_ctrl2, _ = PDt_MC_control2(T, K, S0, r, sigma, N, M)
+#     Prices_MC_ctrl.append(price_ctrl)
+#     CI_up_ctrl.append(ci_up_ctrl)
+#     CI_down_ctrl.append(ci_down_ctrl)
+#     Prices_MC_ctrl2.append(price_ctrl2)
+#     CI_up_ctrl2.append(ci_up_ctrl2)
+#     CI_down_ctrl2.append(ci_down_ctrl2)
+#     Prices_TW.append(PD_TW(T, K, S0, r, sigma, N))
+
+# plt.close()  
+# plt.figure(figsize=(10, 4)) 
+# plt.plot(K_vals, Prices_MC_ctrl, label='P^Δt,MC,ctrl', linestyle='-')
+# plt.fill_between(K_vals, CI_down_ctrl, CI_up_ctrl, alpha=0.2, label='IC 90% P^Δt,MC,ctrl')
+# plt.plot(K_vals, Prices_MC_ctrl2, label='P^Δt,MC,ctrl2', linestyle='-')
+# plt.fill_between(K_vals, CI_down_ctrl2, CI_up_ctrl2, alpha=0.2, label='IC 90% P^Δt,MC,ctrl2')
+# plt.plot(K_vals, Prices_TW, label='P^Δt,TW', linestyle='--')
+# plt.xlabel('Strike K')
+# plt.ylabel('Prix')
+# plt.title('Prix de l\'option asiatique en fonction de K')
+# plt.legend()
+# plt.grid()
+# plt.show()
+
+# Prices_MC_ctrl = np.array(Prices_MC_ctrl)
+# Prices_MC_ctrl2 = np.array(Prices_MC_ctrl2)
+
+# plt.close()
+# plt.plot(K_vals,np.log(np.abs(Prices_MC_ctrl-Prices_MC_ctrl2)))
+# plt.show()
